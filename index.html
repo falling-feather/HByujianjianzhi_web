@@ -653,12 +653,15 @@
             const btn = document.querySelector('.enter-btn');
             btn.style.transform = 'scale(0.95)';
             
-            // 模拟页面跳转效果
+            // 添加过渡效果
+            document.body.style.transition = 'opacity 0.4s ease';
+            document.body.style.opacity = '0.7';
+            
+            // 页面跳转
             setTimeout(() => 
             {
-                alert('即将进入河北蔚县剪纸文化馆...');
-                // 实际使用时可以替换为: window.location.href = 'gallery.html';
-            }, 300);
+                window.location.href = 'test.html';
+            }, 400);
         }
         
         // 添加按钮悬浮效果
