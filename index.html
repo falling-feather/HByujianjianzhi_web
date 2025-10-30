@@ -657,10 +657,18 @@
             document.body.style.transition = 'opacity 0.4s ease';
             document.body.style.opacity = '0.7';
             
-            // 页面跳转
+            // 页面跳转 - 使用相对路径
             setTimeout(() => 
             {
-                window.location.href = 'test.html';
+                // 尝试多种路径格式
+                const currentPath = window.location.pathname;
+                if (currentPath.includes('/')) {
+                    // 如果在子目录中
+                    window.location.href = './test.html';
+                } else {
+                    // 如果在根目录
+                    window.location.href = 'test.html';
+                }
             }, 400);
         }
         
