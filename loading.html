@@ -147,12 +147,10 @@
 <body>
 
     <div class="container">
-        <!-- 轮换剪纸区域 -->
         <div class="paper-cut-wrapper">
             <img id="paperCut" src="./轮换剪纸/1.png" alt="剪纸" class="paper-cut-img">
         </div>
 
-        <!-- 进度条区域 -->
         <div class="progress-section">
             <img id="dragon" src="./小龙形象.png" alt="loading mascot" class="dragon-mascot">
             
@@ -168,9 +166,23 @@
     </div>
 
     <script>
+        // --- 配置 ---
         const paperCutImages = ['1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png', '10.png'];
         const pathPrefix = './轮换剪纸/';
+        
+        // 【关键】这里填写 coming.html 里用到的大图路径，必须完全一致
+        const assetsToPreload = [
+            './index_static/其他/剪纸展示全貌.png',
+            './index_static/其他/剪纸展示框框架.png',
+            './index_static/其他/手指点击.png',
+            './index_static/其他/对话框.png',
+            './index_static/其他/名字框.png',
+            './index_static/小龙.png'
+        ];
+
         let currentImageIndex = 0;
+        let imagesLoadedCount = 0;
+        let isResourcesReady = false; // 资源是否加载完毕标记
 
         const paperCutEl = document.getElementById('paperCut');
         const progressFillEl = document.getElementById('progressFill');
@@ -193,13 +205,56 @@
             }, 2500);
         }
 
-        // --- 2. 进度条模拟逻辑 ---
+        // --- 2. 真实预加载逻辑 ---
+        function startPreloading()
+        {
+            if (assetsToPreload.length === 0)
+            {
+                isResourcesReady = true;
+                return;
+            }
+
+            assetsToPreload.forEach(src => 
+            {
+                const img = new Image();
+                img.src = src;
+                // 无论成功还是失败，都算处理完一张
+                img.onload = img.onerror = () => 
+                {
+                    imagesLoadedCount++;
+                    if (imagesLoadedCount === assetsToPreload.length)
+                    {
+                        isResourcesReady = true;
+                        console.log("所有资源预加载完毕");
+                    }
+                };
+            });
+        }
+
+        // --- 3. 智能进度条逻辑 ---
         function simulateLoading()
         {
             let progress = 0;
+            const minDuration = 2500; // 最小播放时间 2.5s
+            const startTime = Date.now();
+
             const timer = setInterval(() => 
             {
-                progress += Math.random() * 2; 
+                const timePassed = Date.now() - startTime;
+                
+                // 只有当“资源加载完”且“时间也够了”，才允许冲到 100%
+                if (isResourcesReady && timePassed > minDuration)
+                {
+                    progress += 5; // 快速完成
+                }
+                else
+                {
+                    // 否则，慢慢走，且卡在 90% 等待
+                    if (progress < 90)
+                    {
+                        progress += Math.random() * 1.5;
+                    }
+                }
 
                 if (progress >= 100)
                 {
@@ -231,7 +286,6 @@
 
             document.addEventListener('click', function()
             {
-                // 跳转到 coming.html
                 window.location.href = 'coming.html'; 
             }, { once: true });
         }
@@ -239,7 +293,8 @@
         window.onload = function()
         {
             rotatePaperCuts();
-            simulateLoading();
+            startPreloading(); // 启动预加载
+            simulateLoading(); // 启动进度条
         };
     </script>
 </body>

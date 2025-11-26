@@ -237,6 +237,7 @@
 
     <div class="stage-area">
         <div class="paper-cut-box">
+            <!-- 图片资源需与 loading.html 预加载的一致 -->
             <img src="./index_static/其他/剪纸展示全貌.png" class="full-image" alt="剪纸全貌">
             <div class="grid-mask" id="gridMask"></div>
             <img src="./index_static/其他/剪纸展示框框架.png" class="frame-image" alt="框架">
@@ -264,7 +265,6 @@
     const textElement = document.getElementById('typing-text');
     const gridContainer = document.getElementById('gridMask');
     
-    // --- 1. 生成 4x4 网格并启动动画 ---
     function initGrid()
     {
         for(let i = 0; i < 16; i++)
@@ -276,7 +276,6 @@
         startGridAnimation();
     }
 
-    // --- 2. 轮播动画 ---
     function startGridAnimation()
     {
         const cells = document.querySelectorAll('.grid-cell');
@@ -294,7 +293,6 @@
         }, 200);
     }
 
-    // --- 3. 打字机效果 ---
     function typeWriter(text, i)
     {
         if (i < text.length)
