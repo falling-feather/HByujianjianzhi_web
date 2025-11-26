@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正在探索中...</title>
+    <style>
+        /* --- 全局样式 --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 禁止滚动 */
+            font-family: "SimSun", "Songti SC", "STSong", serif; /* 宋体，符合中国风 */
+        }
+
+        /* --- 背景容器 --- */
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: url('./加载页面背景.jpg') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* 垂直居中 */
+            align-items: center;     /* 水平居中 */
+        }
+
+        /* --- 剪纸展示区域 --- */
+        .paper-cut-wrapper {
+            width: 60vw;  /* 根据需要调整大小 */
+            max-width: 300px;
+            height: auto;
+            margin-bottom: 20px; /* 距离进度条的距离 */
+            position: relative;
+            /* 稍微向上偏移，留出空间给底部的门楼背景 */
+            transform: translateY(-50px); 
+        }
+
+        .paper-cut-img {
+            width: 100%;
+            display: block;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); /* 增加一点剪纸的立体感 */
+            transition: opacity 0.5s ease-in-out; /* 图片切换时的淡入淡出 */
+        }
+
+        /* --- 进度条整体区域 --- */
+        .progress-section {
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 定位在画面下方合适的位置，参考图片 */
+            margin-top: 20px;
+        }
+
+        /* --- 小龙形象 (位于进度条上方) --- */
+        .dragon-mascot {
+            position: absolute;
+            width: 50px; /* 根据图片实际大小调整 */
+            height: auto;
+            bottom: 35px; /* 位于进度条上方 */
+            left: 0;      /* 初始位置 */
+            transform: translateX(-50%); /* 让小龙中心对准进度点 */
+            z-index: 10;
+            transition: left 0.1s linear; /* 平滑移动 */
+            
+            /* 给小龙加一个轻微的上下浮动动画，看起来更生动 */
+            animation: float 1.5s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* --- 进度条轨道 --- */
+        .progress-bar-container {
+            width: 100%;
+            height: 20px; /* 根据素材高度调整 */
+            position: relative;
+            /* 进度条的底图 */
+            background: url('./进度条/进度条的底.png') no-repeat center;
+            background-size: 100% 100%;
+            border-radius: 10px; /* 如果底图是圆角的 */
+        }
+
+        /* --- 进度条填充 --- */
+        .progress-fill {
+            height: 100%;
+            width: 0%; /* 动态控制 */
+            /* 进度条填充图 */
+            background: url('./进度条/进度条.png') no-repeat left center;
+            background-size: cover; 
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+
+        /* --- 文字区域 --- */
+        .text-area {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333; /* 深色文字 */
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+
+        .loading-text {
+            letter-spacing: 2px;
+        }
+
+        .percentage {
+            font-family: 'Times New Roman', serif; /* 数字用衬线体更好看 */
+        }
+        /* --- 加载完成后的文字呼吸效果 --- */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .blink-text {
+            animation: blink 1.5s infinite ease-in-out;
+            color: #c0392b; /* 稍微变红提示可点击，或者保持原色 */
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- 轮换剪纸区域 -->
+        <div class="paper-cut-wrapper">
+            <!-- 默认显示第一张 -->
+            <img id="paperCut" src="./轮换剪纸/1.png" alt="剪纸" class="paper-cut-img">
+        </div>
+
+        <!-- 进度条区域 -->
+        <div class="progress-section">
+            <!-- 小龙 -->
+            <img id="dragon" src="./小龙形象.png" alt="loading mascot" class="dragon-mascot">
+            
+            <!-- 进度条主体 -->
+            <div class="progress-bar-container">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+
+            <!-- 文字 -->
+            <div class="text-area">
+                <span class="loading-text">进入探索中......</span>
+                <span id="percentText" class="percentage">0%</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+         // --- 配置区域 ---
+        const paperCutImages = [
+            '1.png', 
+            '2.png',
+            '3.png',
+            '4.png',
+            '5.png',
+            '6.png',
+            '7.png',
+            '8.png',
+            '9.png',
+            '10.png'
+        ];
+        
+        const pathPrefix = './轮换剪纸/';
+        let currentImageIndex = 0;
+
+        // --- 获取DOM元素 ---
+        const paperCutEl = document.getElementById('paperCut');
+        const progressFillEl = document.getElementById('progressFill');
+        const dragonEl = document.getElementById('dragon');
+        const percentTextEl = document.getElementById('percentText');
+        const textSpanEl = document.querySelector('.loading-text'); // 获取文字标签
+
+        // --- 1. 剪纸轮换逻辑 ---
+        function rotatePaperCuts() {
+            setInterval(() => {
+                paperCutEl.style.opacity = 0;
+                setTimeout(() => {
+                    currentImageIndex = (currentImageIndex + 1) % paperCutImages.length;
+                    paperCutEl.src = pathPrefix + paperCutImages[currentImageIndex];
+                    paperCutEl.style.opacity = 1;
+                }, 500);
+            }, 2500);
+        }
+
+        // --- 2. 进度条模拟逻辑 ---
+        function simulateLoading() {
+            let progress = 0;
+            
+            const timer = setInterval(() => {
+                // 随机增加进度
+                const increment = Math.random() * 2; 
+                progress += increment;
+
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(timer); // 停止计时器
+                    updateUI(progress);   // 确保界面显示100%
+                    
+                    // --- 关键修改：加载完成后执行等待点击逻辑 ---
+                    onLoadComplete();
+                    
+                } else {
+                    updateUI(progress);
+                }
+
+            }, 50); 
+        }
+
+        // --- 更新界面 ---
+        function updateUI(value) {
+            const percentage = Math.floor(value);
+            progressFillEl.style.width = value + '%';
+            dragonEl.style.left = value + '%';
+            percentTextEl.innerText = percentage + '%';
+        }
+
+        // --- 新增：加载完成后的处理 ---
+        function onLoadComplete() {
+            // 1. 修改文字提示
+            textSpanEl.innerText = "点击任意处开启旅程";
+            textSpanEl.classList.add('blink-text'); // 添加CSS呼吸效果
+            
+            // 2. 改变鼠标手势，提示可点击
+            document.body.style.cursor = "pointer";
+
+            // 3. 添加全屏点击事件监听器
+            // { once: true } 确保点击一次后就解绑，防止重复触发
+            document.addEventListener('click', function() {
+                // 跳转到 index.html
+                // 浏览器跳转机制会自动刷新页面，index.html 的 window.onload 会重新触发
+                window.location.href = 'index.html'; 
+            }, { once: true });
+        }
+
+        // --- 初始化执行 ---
+        window.onload = function() {
+            rotatePaperCuts();
+            simulateLoading();
+        };
+
+    </script>
+</body>
+</html>
